@@ -1,0 +1,6 @@
+name = "LeanQIR"
+version = "0.1.0"
+defaultTargets = ["LeanQIR"]
+
+[[lean_lib]]
+name = "LeanQIR"

@@ -20,3 +20,4 @@ lake-manifest.json
 .idea/
 *.swp
 *.swo
+/.lake
