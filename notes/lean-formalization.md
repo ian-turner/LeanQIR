@@ -51,20 +51,37 @@ The formalization will likely grow into multiple files under `lean/LeanQIR/`:
 - **Statevector type:** `Fin (2^n) → ℂ` for Phase 1. This is the simplest
   computable representation. `EuclideanSpace ℂ (Fin (2^n))` is the Mathlib-preferred
   type for analysis/proofs and can be adopted in Phase 2.
+  `n` is fixed at elaboration time (from `required_num_qubits`); it is not a
+  runtime variable. This avoids the friction of `Fin (2^n)` with variable `n`
+  (non-definitional type equalities, `#eval` not reducing, etc.).
 
-- **Gate matrix type:** `Matrix (Fin (2^n)) (Fin (2^n)) ℂ`. Apply to state via
-  `Matrix.mulVec`. Single-qubit gates on qubit `k` of an `n`-qubit system are
-  embedded using Kronecker products: `I ⊗ₖ ... ⊗ₖ G ⊗ₖ ... ⊗ₖ I`
-  (`Matrix.kronecker`, module `Mathlib.Data.Matrix.Kronecker`).
+- **Gate application:** Define `applyGate (k : Fin n) (G : Matrix (Fin 2) (Fin 2) ℂ)`
+  directly via index arithmetic over `Fin (2^n)`, rather than via Kronecker products.
+  Concretely, `(applyGate k G ψ) i = ∑ b, G[(i.val / 2^k) % 2, b] * ψ (i with bit k := b)`.
+  This avoids the type mismatch from `Matrix.kronecker` producing `Fin 2 × Fin 2 × …`
+  instead of `Fin (2^n)`, and keeps proofs tractable. The Kronecker product
+  formulation is mathematically equivalent and can be used in Phase 2 proofs where needed.
 
 - **Qubit index splitting for measurement:** To check whether qubit `k` of basis
   index `i : Fin (2^n)` is 0 or 1, use `(i.val / 2^k) % 2`. This is plain
   arithmetic; no special Mathlib equivalence needed. `finFunctionFinEquiv`
   (`Mathlib.Algebra.BigOperators.Fin`) is available if a bijection proof is needed.
 
+- **Semantics return type (measurement):** The big-step relation returns a list of
+  `(post-measurement statevector, outcome bitstring, probability)` triples — one
+  per possible measurement outcome. This is richer than a bare probability
+  distribution over bitstrings, and makes the Phase 3 extension to Adaptive Profile
+  natural (post-measurement state feeds into subsequent classical control flow).
+  Formally: `eval : Program → Statevector → List (Statevector × BitString × ℝ≥0)`.
+
 - **Measurement probability:** For measuring qubit `k` in basis state `ψ : Fin (2^n) → ℂ`,
   the probability of outcome `b ∈ {0, 1}` is `∑ i with bit k of i = b, ‖ψ i‖²`.
   Uses `Finset.sum` and `Complex.normSq` / `‖·‖²`.
+
+- **Verification cross-check:** Compare Lean semantics against `qir-runner` measurement
+  outcome counts (not the full statevector). This avoids the Lean `ℂ` vs. Python
+  `float64` comparison problem. For each outcome, the Lean-computed probability
+  (summed over shots) is compared against the sampled frequency from `qir-runner`.
 
 - **Adaptive Profile control flow:** Deferred to Phase 3. The formalization will
   need a CFG or structured control-flow representation for `i1` classical variables
