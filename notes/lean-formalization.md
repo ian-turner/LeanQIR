@@ -5,7 +5,8 @@
 - **Build tool:** Lake (Lean's package manager)
 - **Config:** `lean/lakefile.toml`
 - **Toolchain:** see `lean/lean-toolchain`
-- **Entry point:** `lean/LeanQIR.lean` imports `LeanQIR.Basic`
+- **Entry point:** `lean/LeanQIR.lean` imports `LeanQIR.Syntax`, `LeanQIR.State`, `LeanQIR.Semantics`
+- **Dependency:** Mathlib (pinned via `lake-manifest.json`; resolve with `lake update`)
 
 Build with:
 ```bash
@@ -14,19 +15,21 @@ cd lean && lake build
 
 ## Current State
 
-`LeanQIR/Basic.lean` is a placeholder (`def hello := "world"`). The formalization has not started yet.
+Phase 1 first-pass code compiles. Three modules are implemented under `lean/LeanQIR/`:
 
-## Planned Structure
+| File | Status | Content |
+|---|---|---|
+| `Syntax.lean` | ✅ compiles | `Gate1`, `Gate1R`, `Gate2`, `GateInstr`, `MeasInstr`, `Program` |
+| `State.lean` | ✅ compiles | `Statevector`, gate matrices, `getBit`, `setBit`, `applyGate1`, `applyGate2` |
+| `Semantics.lean` | ✅ compiles | `BitString`, `measureQubit`, `evalGates`, `evalMeasurements`, `eval` |
+| `Denotational.lean` | planned | Density-matrix semantics (Phase 2) |
+| `Equiv.lean` | planned | Equivalence proofs (Phase 2) |
 
-The formalization will likely grow into multiple files under `lean/LeanQIR/`:
-
-| File (planned) | Content |
-|---|---|
-| `Syntax.lean` | Inductive types for QIR instructions and programs |
-| `State.lean` | Quantum state representation (statevectors) |
-| `Semantics.lean` | Big-step operational semantics |
-| `Denotational.lean` | Denotational semantics via superoperators (Phase 2) |
-| `Equiv.lean` | Equivalence proofs between semantic styles (Phase 2) |
+**Next steps:**
+- Prove correctness of `setBit` round-trip: `getBit (setBit i k b) k = b`
+- Write the Bell state circuit as a `Program 2 2` and verify `eval` returns the right probability distribution
+- Cross-check `eval` output against `scripts/simulate.py` (qir-runner)
+- Fill in any remaining `sorry`s (there are none currently; the `setBit` bound proof uses `nlinarith`)
 
 ## Design Decisions
 

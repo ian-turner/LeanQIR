@@ -2,5 +2,9 @@ name = "LeanQIR"
 version = "0.1.0"
 defaultTargets = ["LeanQIR"]
 
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+
 [[lean_lib]]
 name = "LeanQIR"

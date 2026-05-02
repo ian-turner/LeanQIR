@@ -1,3 +1,4 @@
--- This module serves as the root of the `LeanQIR` library.
--- Import modules here that should be built as part of the library.
-import LeanQIR.Basic
+-- Root of the LeanQIR library.
+import LeanQIR.Syntax
+import LeanQIR.State
+import LeanQIR.Semantics
