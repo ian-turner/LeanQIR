@@ -5,14 +5,21 @@
 - **Build tool:** Lake (Lean's package manager)
 - **Config:** `lean/lakefile.toml`
 - **Toolchain:** see `lean/lean-toolchain`
-- **Entry point:** `lean/LeanQIR.lean` imports `LeanQIR.Syntax`, `LeanQIR.QIR.Base`,
-  `LeanQIR.QIR.Emit`, `LeanQIR.Examples.Bell`, `LeanQIR.State`, and
+- **Core entry point:** `lean/LeanQIR.lean` imports `LeanQIR.Syntax`,
+  `LeanQIR.QIR.Base`, `LeanQIR.QIR.Emit`, `LeanQIR.State`, and
   `LeanQIR.Semantics`
+- **Examples entry point:** `lean/LeanQIR/Examples.lean` imports the Bell fixture
+  as the separate `LeanQIR.Examples` module
 - **Dependency:** Mathlib (pinned via `lake-manifest.json`; resolve with `lake update`)
 
 Build with:
 ```bash
 cd lean && lake build
+```
+
+Build examples with:
+```bash
+cd lean && lake build LeanQIR.Examples
 ```
 
 Emit the Bell Base Profile fixture with:
@@ -22,15 +29,16 @@ cd lean && lake exe emit_bell
 
 ## Current State
 
-Phase 1 first-pass code compiles. Three modules are implemented under `lean/LeanQIR/`:
+Phase 1 first-pass code compiles. The implemented modules under `lean/LeanQIR/`
+are:
 
 | File | Status | Content |
 |---|---|---|
 | `Syntax.lean` | ✅ compiles | `Gate1`, `Gate1R`, `Gate2`, shared `ProgramBlocks`, `GateInstr`, `MeasInstr`, `Program` |
 | `QIR/Base.lean` | ✅ compiles | QIR Base Profile entry-point structure over shared program blocks, metadata, output records, well-formedness, elaboration to `Program` |
 | `QIR/Emit.lean` | ✅ compiles | Lean-native emitter from supported `BaseProgram` values to textual LLVM IR |
-| `Examples/Bell.lean` | ✅ compiles | `bellBase : BaseProgram 2 2`, well-formedness proof, emitted LLVM string |
-| `CLI/EmitBell.lean` | ✅ compiles | Lake executable that prints the emitted Bell `.ll` |
+| `Examples.lean` | ✅ compiles | Separate examples root importing Bell |
+| `Examples/Bell.lean` | ✅ compiles | `bellBase : BaseProgram 2 2`, well-formedness proof, emitted LLVM string, and `emit_bell` CLI main |
 | `State.lean` | ✅ compiles | `Statevector`, gate matrices, `getBit`, `setBit`, `applyGate1`, `applyGate2` |
 | `Semantics.lean` | ✅ compiles | `BitString`, `measureQubit`, `evalGates`, `evalMeasurements`, `eval` |
 | `Denotational.lean` | planned | Density-matrix semantics (Phase 2) |

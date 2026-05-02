@@ -40,3 +40,13 @@ theorem bellBase_wellFormed : bellBase.WellFormed := by
 /-- LLVM IR text emitted from the Bell Base Profile fixture. -/
 def bellLL : Except String String :=
   QIREmit.emitBaseProgram bellBase
+
+/-- CLI entry point for emitting the Bell Base Profile fixture. -/
+def main : IO UInt32 := do
+  match bellLL with
+  | .ok llvm =>
+      IO.print llvm
+      pure 0
+  | .error message =>
+      IO.eprintln message
+      pure 1

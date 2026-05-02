@@ -8,7 +8,12 @@ scope = "leanprover-community"
 
 [[lean_lib]]
 name = "LeanQIR"
+globs = ["LeanQIR", "LeanQIR.Syntax", "LeanQIR.State", "LeanQIR.Semantics", "LeanQIR.QIR.+"]
+
+[[lean_lib]]
+name = "LeanQIR.Examples"
+globs = ["LeanQIR.Examples.*"]
 
 [[lean_exe]]
 name = "emit_bell"
-root = "LeanQIR.CLI.EmitBell"
+root = "LeanQIR.Examples.Bell"

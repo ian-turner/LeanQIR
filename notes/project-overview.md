@@ -20,15 +20,14 @@ examples/           QIR circuit files (.ll) used for testing
 lean/               Lean 4 project (Lake)
   lakefile.toml
   lean-toolchain
-  LeanQIR.lean      Root import
+  LeanQIR.lean      Core root import
   LeanQIR/
     Syntax.lean     Circuit-level syntax
     State.lean      Statevector operations
     Semantics.lean  Big-step statevector semantics
+    Examples.lean   Examples root import, separate from the core library target
     Examples/
-      Bell.lean      Bell BaseProgram fixture and well-formedness proof
-    CLI/
-      EmitBell.lean  Lake executable that prints the emitted Bell .ll
+      Bell.lean      Bell fixture, well-formedness proof, and emitter CLI main
     QIR/
       Base.lean     QIR Base Profile structure and well-formedness
       Emit.lean     BaseProgram-to-LLVM-text emitter
@@ -45,7 +44,8 @@ notes/              This wiki
 2. Model the Base Profile's four-block program structure as a Lean record
    (initial version done in `LeanQIR.QIR.Base`)
 3. Emit structured Base programs back to `.ll` for simulator cross-checks
-   (initial Bell path done via `lake exe emit_bell`)
+   (initial Bell path done via the separate `LeanQIR.Examples` module and
+   `lake exe emit_bell`)
 4. Define an operational semantics over statevectors (big-step, Base Profile only)
 5. Cross-check rules against MQT DDSIM simulation output
 
