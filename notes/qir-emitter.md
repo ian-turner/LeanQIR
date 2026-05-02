@@ -18,16 +18,16 @@ It emits the current supported non-rotational Base subset:
 - Runtime calls for initialization and tuple/array/result output records.
 - Entry-point attributes and QIR 2.0 module flags from `BaseProgram`.
 
-`lean/LeanQIR/Examples.lean` is the examples root module. It imports the Bell
+`lean/Examples.lean` is the examples root module. It imports the Bell
 fixture, keeping example code outside the core `LeanQIR` library root.
 
-`lean/LeanQIR/Examples/Bell.lean` defines `bellBase : BaseProgram 2 2`, proves
+`lean/Examples/Bell.lean` defines `bellBase : BaseProgram 2 2`, proves
 `bellBase_wellFormed`, exposes `bellLL`, and provides the `main` function for
 the `emit_bell` Lake executable:
 
 ```bash
 cd lean
-lake build LeanQIR.Examples
+lake build Examples
 lake exe emit_bell > /tmp/leanqir-bell.ll
 ```
 

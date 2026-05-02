@@ -38,7 +38,7 @@ yet; they are represented and checked in the Base layer.
 `LeanQIR.QIR.Emit` now provides the inverse engineering path for the supported
 subset: a structured `BaseProgram n m` can be emitted as textual LLVM IR and fed
 to `llvm-as` or `qir-runner`. The first fixture is `bellBase` in
-`LeanQIR.Examples.Bell`, printable with `lake exe emit_bell`.
+`Examples.Bell`, printable with `lake exe emit_bell`.
 
 ## Next Steps
 

@@ -17,8 +17,8 @@ Formalizing the semantics of [QIR](https://github.com/qir-alliance/qir-spec) (Qu
 
 | Thing | Where |
 |---|---|
-| Lean source | `lean/LeanQIR/` |
-| Examples module | `cd lean && lake build LeanQIR.Examples` |
+| Lean source | `lean/LeanQIR/`, `lean/Examples/` |
+| Examples module | `cd lean && lake build Examples` |
 | Example circuits | `examples/*.ll` |
 | Bell emitter CLI | `cd lean && lake exe emit_bell` |
 | Simulation script | `scripts/simulate.py` |

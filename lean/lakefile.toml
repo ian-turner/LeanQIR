@@ -11,9 +11,9 @@ name = "LeanQIR"
 globs = ["LeanQIR", "LeanQIR.Syntax", "LeanQIR.State", "LeanQIR.Semantics", "LeanQIR.QIR.+"]
 
 [[lean_lib]]
-name = "LeanQIR.Examples"
-globs = ["LeanQIR.Examples.*"]
+name = "Examples"
+globs = ["Examples", "Examples.+"]
 
 [[lean_exe]]
 name = "emit_bell"
-root = "LeanQIR.Examples.Bell"
+root = "Examples.Bell"
