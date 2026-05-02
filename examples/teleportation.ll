@@ -1,75 +1,83 @@
-; Quantum teleportation
+; Quantum teleportation with mid-circuit measurement and conditional corrections.
+; QIR Adaptive Profile, spec version 2.0.
 ;
-; Qubits:
-;   q0 = state to teleport (prepared as |+> = H|0>)
-;   q1, q2 = Bell pair (shared channel)
-;
-; Protocol:
-;   1. Prepare |+> on q0
-;   2. Create Bell pair on q1, q2
-;   3. Bell measurement on q0, q1 -> m0, m1
-;   4. Classical corrections on q2: X if m1=1, Z if m0=1
-;   5. Measure q2 -> should match original state (50/50 for |+>)
-;
-; QIR Adaptive Profile v1
+; q0 = state to teleport, prepared as |+>
+; q1, q2 = Bell pair
+; r0, r1 = Bell measurement results
+; r2 = final measurement of q2
 
-%Qubit = type opaque
-%Result = type opaque
+@0 = internal constant [3 x i8] c"m0\00"
+@1 = internal constant [3 x i8] c"m1\00"
+@2 = internal constant [3 x i8] c"m2\00"
+@3 = internal constant [13 x i8] c"teleport_out\00"
 
-define void @main() #0 {
+define i64 @main() #0 {
 entry:
-  ; Prepare state to teleport: |+> on q0
-  call void @__quantum__qis__h__body(%Qubit* null)
+  call void @__quantum__rt__initialize(ptr null)
+  br label %body
 
-  ; Create Bell pair on q1, q2
-  call void @__quantum__qis__h__body(%Qubit* inttoptr (i64 1 to %Qubit*))
-  call void @__quantum__qis__cnot__body(%Qubit* inttoptr (i64 1 to %Qubit*), %Qubit* inttoptr (i64 2 to %Qubit*))
+body:
+  ; Prepare |+> on q0.
+  tail call void @__quantum__qis__h__body(ptr null)
 
-  ; Bell measurement on q0, q1
-  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* inttoptr (i64 1 to %Qubit*))
-  call void @__quantum__qis__h__body(%Qubit* null)
-  call void @__quantum__qis__mz__body(%Qubit* null, %Result* null)
-  call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), %Result* inttoptr (i64 1 to %Result*))
+  ; Create a Bell pair on q1 and q2.
+  tail call void @__quantum__qis__h__body(ptr inttoptr (i64 1 to ptr))
+  tail call void @__quantum__qis__cnot__body(ptr inttoptr (i64 1 to ptr), ptr inttoptr (i64 2 to ptr))
 
-  ; Read measurement results for classical control
-  %m0 = call i1 @__quantum__qis__read_result__body(%Result* null)
-  %m1 = call i1 @__quantum__qis__read_result__body(%Result* inttoptr (i64 1 to %Result*))
+  ; Bell measurement on q0 and q1.
+  tail call void @__quantum__qis__cnot__body(ptr null, ptr inttoptr (i64 1 to ptr))
+  tail call void @__quantum__qis__h__body(ptr null)
+  tail call void @__quantum__qis__mz__body(ptr null, ptr writeonly null)
+  %m0 = tail call i1 @__quantum__rt__read_result(ptr readonly null)
+  tail call void @__quantum__qis__mz__body(ptr inttoptr (i64 1 to ptr), ptr writeonly inttoptr (i64 1 to ptr))
+  %m1 = tail call i1 @__quantum__rt__read_result(ptr readonly inttoptr (i64 1 to ptr))
 
-  ; X correction on q2 if m1 = 1
-  br i1 %m1, label %apply_x, label %skip_x
+  br i1 %m1, label %apply_x, label %after_x
+
 apply_x:
-  call void @__quantum__qis__x__body(%Qubit* inttoptr (i64 2 to %Qubit*))
-  br label %skip_x
-skip_x:
-  ; Z correction on q2 if m0 = 1
-  br i1 %m0, label %apply_z, label %skip_z
-apply_z:
-  call void @__quantum__qis__z__body(%Qubit* inttoptr (i64 2 to %Qubit*))
-  br label %skip_z
-skip_z:
-  ; Measure q2
-  call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 2 to %Qubit*), %Result* inttoptr (i64 2 to %Result*))
+  tail call void @__quantum__qis__x__body(ptr inttoptr (i64 2 to ptr))
+  br label %after_x
 
-  ; Record: m0 (q0), m1 (q1), m2 (q2 after corrections)
-  call void @__quantum__rt__result_record_output(%Result* null, i8* null)
-  call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*), i8* null)
-  call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 2 to %Result*), i8* null)
-  ret void
+after_x:
+  br i1 %m0, label %apply_z, label %after_z
+
+apply_z:
+  tail call void @__quantum__qis__z__body(ptr inttoptr (i64 2 to ptr))
+  br label %after_z
+
+after_z:
+  tail call void @__quantum__qis__mz__body(ptr inttoptr (i64 2 to ptr), ptr writeonly inttoptr (i64 2 to ptr))
+  br label %output
+
+output:
+  call void @__quantum__rt__tuple_record_output(i64 3, ptr @3)
+  call void @__quantum__rt__result_record_output(ptr null, ptr @0)
+  call void @__quantum__rt__result_record_output(ptr inttoptr (i64 1 to ptr), ptr @1)
+  call void @__quantum__rt__result_record_output(ptr inttoptr (i64 2 to ptr), ptr @2)
+  ret i64 0
 }
 
-declare void @__quantum__qis__h__body(%Qubit*)
-declare void @__quantum__qis__cnot__body(%Qubit*, %Qubit*)
-declare void @__quantum__qis__x__body(%Qubit*)
-declare void @__quantum__qis__z__body(%Qubit*)
-declare void @__quantum__qis__mz__body(%Qubit*, %Result* writeonly) #1
-declare i1 @__quantum__qis__read_result__body(%Result*)
-declare void @__quantum__rt__result_record_output(%Result*, i8*)
+declare void @__quantum__rt__initialize(ptr)
+declare i1 @__quantum__rt__read_result(ptr readonly)
+declare void @__quantum__rt__tuple_record_output(i64, ptr)
+declare void @__quantum__rt__result_record_output(ptr, ptr)
 
-attributes #0 = { "entry_point" "output_labeling_schema" "qir_profiles"="adaptive_profile" "required_num_qubits"="3" "required_num_results"="3" }
+declare void @__quantum__qis__h__body(ptr)
+declare void @__quantum__qis__cnot__body(ptr, ptr)
+declare void @__quantum__qis__x__body(ptr)
+declare void @__quantum__qis__z__body(ptr)
+declare void @__quantum__qis__mz__body(ptr, ptr writeonly) #1
+
+attributes #0 = { "entry_point" "qir_profiles"="adaptive_profile" "output_labeling_schema"="schema_id" "required_num_qubits"="3" "required_num_results"="3" }
 attributes #1 = { "irreversible" }
 
-!llvm.module.flags = !{!0, !1, !2, !3}
-!0 = !{i32 1, !"qir_major_version", i32 1}
+!llvm.module.flags = !{!0, !1, !2, !3, !4, !5, !6, !7, !8}
+!0 = !{i32 1, !"qir_major_version", i32 2}
 !1 = !{i32 7, !"qir_minor_version", i32 0}
 !2 = !{i32 1, !"dynamic_qubit_management", i1 false}
 !3 = !{i32 1, !"dynamic_result_management", i1 false}
+!4 = !{i32 1, !"ir_functions", i1 false}
+!5 = !{i32 1, !"backwards_branching", i2 0}
+!6 = !{i32 1, !"multiple_target_branching", i1 false}
+!7 = !{i32 1, !"multiple_return_points", i1 false}
+!8 = !{i32 1, !"arrays", i1 false}
