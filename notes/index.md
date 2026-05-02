@@ -9,6 +9,7 @@ Formalizing the semantics of [QIR](https://github.com/qir-alliance/qir-spec) (Qu
 - [QIR Example Fixtures](qir-example-fixtures.md) — profile/version assumptions for `examples/*.ll`
 - [QIR Base Structure](qir-base-structure.md) — Lean representation of Base Profile entry-point structure
 - [QIR Base Emitter](qir-emitter.md) — emitting structured Base programs to `.ll`
+- [Program Block Refactor](program-block-refactor.md) — shared body/measurement structure for root and QIR programs
 - [Lean Formalization](lean-formalization.md) — the Lean 4 project layout and plans
 - [Simulation & Verification](simulation.md) — using MQT DDSIM and qir-runner to verify semantics
 

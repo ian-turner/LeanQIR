@@ -8,6 +8,8 @@ earlier circuit-level `Program`:
 
 - `BaseProgram n m` represents the four Base Profile regions:
   `entry -> body -> measurements -> output`.
+- The body and measurement regions use the shared `ProgramBlocks` container from
+  `LeanQIR.Syntax`, specialized to `BaseBodyInstr` and `BaseMeasInstr`.
 - Static qubit and result references are represented as `Fin n` and `Fin m`,
   corresponding to the integer ids encoded in non-dynamic QIR `ptr` values.
 - `BaseEntryAttrs` stores entry-point metadata such as `qir_profiles`,

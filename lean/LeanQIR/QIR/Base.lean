@@ -1,18 +1,5 @@
 import LeanQIR.Syntax
 
-/-- Static qubit reference used by Base Profile programs.
-
-In Base Profile QIR, qubits are represented by `ptr` constants encoding integer
-ids in the range `[0, required_num_qubits)`. This resolved Lean layer represents
-those ids directly as bounded indices. -/
-abbrev QubitRef (n : ℕ) := Fin n
-
-/-- Static result reference used by Base Profile programs.
-
-In Base Profile QIR, result slots are represented by `ptr` constants encoding
-integer ids in the range `[0, required_num_results)`. -/
-abbrev ResultRef (m : ℕ) := Fin m
-
 /-- QIR module flag merge behavior for the flags modeled here. -/
 inductive ModuleFlagBehavior where
   | error
@@ -183,8 +170,7 @@ end BaseBodyInstr
 
 /-- The Base Profile body block: non-irreversible QIS calls followed by an
 unconditional branch to the measurement block. -/
-structure BaseBodyBlock (n : ℕ) where
-  instructions : List (BaseBodyInstr n)
+abbrev BaseBodyBlock (n : ℕ) := BodyBlock BaseBodyInstr n
 
 namespace BaseBodyBlock
 
@@ -212,9 +198,7 @@ end BaseMeasInstr
 
 /-- The Base Profile measurement block: irreversible QIS calls followed by an
 unconditional branch to the output block. -/
-structure BaseMeasurementBlock (n m : ℕ) where
-  instructions : List (BaseMeasInstr n m)
-  deriving Repr, DecidableEq
+abbrev BaseMeasurementBlock (n m : ℕ) := MeasurementBlock BaseMeasInstr n m
 
 /-- Runtime output-recording calls supported by Base Profile. Each call carries
 the non-null string label that raw QIR passes as a global string pointer. -/
@@ -274,11 +258,16 @@ structure BaseProgram (n m : ℕ) where
   attrs : BaseEntryAttrs
   flags : BaseModuleFlags
   entry : BaseEntryBlock
-  body : BaseBodyBlock n
-  measurements : BaseMeasurementBlock n m
+  blocks : ProgramBlocks BaseBodyInstr BaseMeasInstr n m
   output : BaseOutputBlock m
 
 namespace BaseProgram
+
+def body {n m : ℕ} (program : BaseProgram n m) : BaseBodyBlock n :=
+  program.blocks.body
+
+def measurements {n m : ℕ} (program : BaseProgram n m) : BaseMeasurementBlock n m :=
+  program.blocks.measurements
 
 /-- A complete Base Profile well-formedness predicate for the QIR structure
 modeled so far. Bounded qubit/result references and the four-block shape are
@@ -288,7 +277,7 @@ def WellFormed {n m : ℕ} (program : BaseProgram n m) : Prop :=
   program.attrs.WellFormed n m ∧
   program.flags.WellFormed ∧
   program.entry.WellFormed ∧
-  program.body.WellFormed ∧
+  BaseBodyBlock.WellFormed program.body ∧
   program.output.WellFormed
 
 /-- Erase the QIR Base Profile structure into the earlier circuit-level program
@@ -296,8 +285,7 @@ used by the current statevector semantics. Output records and metadata are not
 semantic in that older layer, so they are checked by `WellFormed` rather than
 preserved here. -/
 def toProgram {n m : ℕ} (program : BaseProgram n m) : Program n m where
-  gates := program.body.instructions.map BaseBodyInstr.toGateInstr
-  measurements := program.measurements.instructions.map BaseMeasInstr.toMeasInstr
+  blocks := program.blocks.map BaseBodyInstr.toGateInstr BaseMeasInstr.toMeasInstr
 
 /-- Convenience constructor for Base Profile programs that target QIR 2.0. -/
 def qir2_0
@@ -308,8 +296,9 @@ def qir2_0
   attrs := BaseEntryAttrs.base name outputLabelingSchema n m
   flags := BaseModuleFlags.qir2_0
   entry := BaseEntryBlock.initialized
-  body := { instructions := body }
-  measurements := { instructions := measurements }
+  blocks :=
+    { body := { instructions := body }
+      measurements := { instructions := measurements } }
   output := { records := output, returnCode := 0 }
 
 theorem qir2_0_wellFormed

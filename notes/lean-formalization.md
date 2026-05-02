@@ -26,8 +26,8 @@ Phase 1 first-pass code compiles. Three modules are implemented under `lean/Lean
 
 | File | Status | Content |
 |---|---|---|
-| `Syntax.lean` | ✅ compiles | `Gate1`, `Gate1R`, `Gate2`, `GateInstr`, `MeasInstr`, `Program` |
-| `QIR/Base.lean` | ✅ compiles | QIR Base Profile entry-point structure, metadata, output records, well-formedness, elaboration to `Program` |
+| `Syntax.lean` | ✅ compiles | `Gate1`, `Gate1R`, `Gate2`, shared `ProgramBlocks`, `GateInstr`, `MeasInstr`, `Program` |
+| `QIR/Base.lean` | ✅ compiles | QIR Base Profile entry-point structure over shared program blocks, metadata, output records, well-formedness, elaboration to `Program` |
 | `QIR/Emit.lean` | ✅ compiles | Lean-native emitter from supported `BaseProgram` values to textual LLVM IR |
 | `Examples/Bell.lean` | ✅ compiles | `bellBase : BaseProgram 2 2`, well-formedness proof, emitted LLVM string |
 | `CLI/EmitBell.lean` | ✅ compiles | Lake executable that prints the emitted Bell `.ll` |
@@ -60,11 +60,12 @@ Phase 1 first-pass code compiles. Three modules are implemented under `lean/Lean
 - **Base Profile structure layer:** `LeanQIR.QIR.Base` now represents the QIR
   Base Profile entry point as a resolved four-region structure:
   `entry -> body -> measurements -> output`. The type enforces the block shape
-  and bounded static qubit/result references. `BaseProgram.WellFormed` checks
-  metadata agreement, QIR 2.0 module flags, runtime initialization, body
-  validity, output labels, and `ret i64 0`. `BaseProgram.toProgram` erases this
-  structure into the older circuit-level `Program n m` for the current
-  statevector semantics.
+  and bounded static qubit/result references. The body and measurement regions
+  reuse `ProgramBlocks` from `LeanQIR.Syntax`, specialized to Base Profile
+  instruction types. `BaseProgram.WellFormed` checks metadata agreement, QIR 2.0
+  module flags, runtime initialization, body validity, output labels, and
+  `ret i64 0`. `BaseProgram.toProgram` erases this structure into the older
+  circuit-level `Program n m` for the current statevector semantics.
 
 - **Base Profile emitter:** `LeanQIR.QIR.Emit` maps supported `BaseProgram n m`
   values back to textual LLVM IR. It emits a faithful four-block Base Profile
