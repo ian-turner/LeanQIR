@@ -5,12 +5,19 @@
 - **Build tool:** Lake (Lean's package manager)
 - **Config:** `lean/lakefile.toml`
 - **Toolchain:** see `lean/lean-toolchain`
-- **Entry point:** `lean/LeanQIR.lean` imports `LeanQIR.Syntax`, `LeanQIR.State`, `LeanQIR.Semantics`
+- **Entry point:** `lean/LeanQIR.lean` imports `LeanQIR.Syntax`, `LeanQIR.QIR.Base`,
+  `LeanQIR.QIR.Emit`, `LeanQIR.Examples.Bell`, `LeanQIR.State`, and
+  `LeanQIR.Semantics`
 - **Dependency:** Mathlib (pinned via `lake-manifest.json`; resolve with `lake update`)
 
 Build with:
 ```bash
 cd lean && lake build
+```
+
+Emit the Bell Base Profile fixture with:
+```bash
+cd lean && lake exe emit_bell
 ```
 
 ## Current State
@@ -20,6 +27,10 @@ Phase 1 first-pass code compiles. Three modules are implemented under `lean/Lean
 | File | Status | Content |
 |---|---|---|
 | `Syntax.lean` | ✅ compiles | `Gate1`, `Gate1R`, `Gate2`, `GateInstr`, `MeasInstr`, `Program` |
+| `QIR/Base.lean` | ✅ compiles | QIR Base Profile entry-point structure, metadata, output records, well-formedness, elaboration to `Program` |
+| `QIR/Emit.lean` | ✅ compiles | Lean-native emitter from supported `BaseProgram` values to textual LLVM IR |
+| `Examples/Bell.lean` | ✅ compiles | `bellBase : BaseProgram 2 2`, well-formedness proof, emitted LLVM string |
+| `CLI/EmitBell.lean` | ✅ compiles | Lake executable that prints the emitted Bell `.ll` |
 | `State.lean` | ✅ compiles | `Statevector`, gate matrices, `getBit`, `setBit`, `applyGate1`, `applyGate2` |
 | `Semantics.lean` | ✅ compiles | `BitString`, `measureQubit`, `evalGates`, `evalMeasurements`, `eval` |
 | `Denotational.lean` | planned | Density-matrix semantics (Phase 2) |
@@ -28,6 +39,8 @@ Phase 1 first-pass code compiles. Three modules are implemented under `lean/Lean
 **Next steps:**
 - Prove correctness of `setBit` round-trip: `getBit (setBit i k b) k = b`
 - Write the Bell state circuit as a `Program 2 2` and verify `eval` returns the right probability distribution
+- Extend the emitter beyond Bell: robust string escaping, rotation literals, and
+  a generic fixture/program selection interface
 - Cross-check `eval` output against `scripts/simulate.py` (qir-runner)
 - Fill in any remaining `sorry`s (there are none currently; the `setBit` bound proof uses `nlinarith`)
 
@@ -43,6 +56,21 @@ Phase 1 first-pass code compiles. Three modules are implemented under `lean/Lean
   IR (list of gate calls, list of measurements, list of output calls) rather than
   full LLVM basic blocks with named SSA variables. SSA names are irrelevant to
   the semantics we care about for Base Profile.
+
+- **Base Profile structure layer:** `LeanQIR.QIR.Base` now represents the QIR
+  Base Profile entry point as a resolved four-region structure:
+  `entry -> body -> measurements -> output`. The type enforces the block shape
+  and bounded static qubit/result references. `BaseProgram.WellFormed` checks
+  metadata agreement, QIR 2.0 module flags, runtime initialization, body
+  validity, output labels, and `ret i64 0`. `BaseProgram.toProgram` erases this
+  structure into the older circuit-level `Program n m` for the current
+  statevector semantics.
+
+- **Base Profile emitter:** `LeanQIR.QIR.Emit` maps supported `BaseProgram n m`
+  values back to textual LLVM IR. It emits a faithful four-block Base Profile
+  shape, static pointer ids, output-label globals, entry attributes, declarations,
+  and module flags. It returns `Except.error` for rotations because the current
+  angle field is mathematical `ℝ`, not an emitter-friendly floating literal.
 
 - **Qubit/result representation:** `Qubit := Fin n` where `n` is the static qubit
   count declared in entry-point attributes. Results are `Fin m` similarly.

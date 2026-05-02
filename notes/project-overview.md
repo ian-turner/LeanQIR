@@ -6,7 +6,10 @@ Build a formal semantics for QIR (Quantum Intermediate Representation) in Lean 4
 
 ## Current Status
 
-Early scaffolding. The Lean project builds but `LeanQIR/Basic.lean` is a placeholder. The simulation harness is working (Bell state and teleportation circuits run successfully via `scripts/simulate.py`).
+The Lean project builds with a first-pass circuit semantics, a QIR-facing Base
+Profile structure layer, and a Lean-native Base emitter. The simulation harness
+is working: checked-in Bell/teleportation fixtures run, and the Lean-emitted
+Bell program runs through `scripts/simulate.py`.
 
 ## Repository Layout
 
@@ -19,7 +22,16 @@ lean/               Lean 4 project (Lake)
   lean-toolchain
   LeanQIR.lean      Root import
   LeanQIR/
-    Basic.lean      Placeholder — formalization goes here
+    Syntax.lean     Circuit-level syntax
+    State.lean      Statevector operations
+    Semantics.lean  Big-step statevector semantics
+    Examples/
+      Bell.lean      Bell BaseProgram fixture and well-formedness proof
+    CLI/
+      EmitBell.lean  Lake executable that prints the emitted Bell .ll
+    QIR/
+      Base.lean     QIR Base Profile structure and well-formedness
+      Emit.lean     BaseProgram-to-LLVM-text emitter
 scripts/
   simulate.py       Run a .ll file with qir-runner, print outcome counts
 notes/              This wiki
@@ -31,17 +43,20 @@ notes/              This wiki
 1. Define QIR types in Lean: `Qubit`, `Result`, `Gate`, `Instr`, `Program`
    (see `lean-formalization.md` for module layout)
 2. Model the Base Profile's four-block program structure as a Lean record
-3. Define an operational semantics over statevectors (big-step, Base Profile only)
-4. Cross-check rules against MQT DDSIM simulation output
+   (initial version done in `LeanQIR.QIR.Base`)
+3. Emit structured Base programs back to `.ll` for simulator cross-checks
+   (initial Bell path done via `lake exe emit_bell`)
+4. Define an operational semantics over statevectors (big-step, Base Profile only)
+5. Cross-check rules against MQT DDSIM simulation output
 
 ### Phase 2 — Denotational semantics
-5. Define density-matrix semantics using Mathlib `Matrix ℂ`
-6. Prove equivalence between operational and denotational for Base Profile
+6. Define density-matrix semantics using Mathlib `Matrix ℂ`
+7. Prove equivalence between operational and denotational for Base Profile
 
 ### Phase 3 — Adaptive Profile
-7. Extend syntax with `i1` classical variables, conditional `br`, and a CFG
-8. Extend semantics with `read_result`, conditional execution
-9. Prove key correctness properties (e.g. teleportation correctness)
+8. Extend syntax with `i1` classical variables, conditional `br`, and a CFG
+9. Extend semantics with `read_result`, conditional execution
+10. Prove key correctness properties (e.g. teleportation correctness)
 
 ### Key spec facts to encode
 - Qubits are `Fin numQubits` (static allocation) or opaque ptrs (dynamic)

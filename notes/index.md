@@ -7,6 +7,8 @@ Formalizing the semantics of [QIR](https://github.com/qir-alliance/qir-spec) (Qu
 - [Project Overview](project-overview.md) — goals, structure, current status
 - [QIR Primer](qir-primer.md) — what QIR is, profiles, instruction set
 - [QIR Example Fixtures](qir-example-fixtures.md) — profile/version assumptions for `examples/*.ll`
+- [QIR Base Structure](qir-base-structure.md) — Lean representation of Base Profile entry-point structure
+- [QIR Base Emitter](qir-emitter.md) — emitting structured Base programs to `.ll`
 - [Lean Formalization](lean-formalization.md) — the Lean 4 project layout and plans
 - [Simulation & Verification](simulation.md) — using MQT DDSIM and qir-runner to verify semantics
 
@@ -16,5 +18,6 @@ Formalizing the semantics of [QIR](https://github.com/qir-alliance/qir-spec) (Qu
 |---|---|
 | Lean source | `lean/LeanQIR/` |
 | Example circuits | `examples/*.ll` |
+| Bell emitter CLI | `cd lean && lake exe emit_bell` |
 | Simulation script | `scripts/simulate.py` |
 | Python environment | `quantum` conda env |
