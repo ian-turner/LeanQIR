@@ -27,8 +27,25 @@ notes/              This wiki
 
 ## Planned Work
 
-1. Define QIR types and instructions as Lean 4 inductive types
-2. Define a small-step or big-step operational semantics
-3. Define a denotational semantics (density matrices)
-4. Prove equivalence between operational and denotational semantics
-5. Use simulation results (MQT DDSIM) to cross-check semantic rules during development
+### Phase 1 — Base Profile formalization
+1. Define QIR types in Lean: `Qubit`, `Result`, `Gate`, `Instr`, `Program`
+   (see `lean-formalization.md` for module layout)
+2. Model the Base Profile's four-block program structure as a Lean record
+3. Define an operational semantics over statevectors (big-step, Base Profile only)
+4. Cross-check rules against MQT DDSIM simulation output
+
+### Phase 2 — Denotational semantics
+5. Define density-matrix semantics using Mathlib `Matrix ℂ`
+6. Prove equivalence between operational and denotational for Base Profile
+
+### Phase 3 — Adaptive Profile
+7. Extend syntax with `i1` classical variables, conditional `br`, and a CFG
+8. Extend semantics with `read_result`, conditional execution
+9. Prove key correctness properties (e.g. teleportation correctness)
+
+### Key spec facts to encode
+- Qubits are `Fin numQubits` (static allocation) or opaque ptrs (dynamic)
+- Results are write-once; only `result_record_output` may read them
+- Measurement functions are marked `irreversible`; qubits cannot be reused
+  after measurement in Base Profile
+- Module flags control which capabilities are active

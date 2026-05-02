@@ -21,3 +21,6 @@ lake-manifest.json
 *.swp
 *.swo
 /.lake
+
+# Obsidian
+.obsidian/
