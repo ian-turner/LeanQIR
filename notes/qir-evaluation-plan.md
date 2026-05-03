@@ -328,3 +328,22 @@ Added `LeanQIR.Numeric` with:
 `Float` remains intentionally law-free. It is for executable comparison and
 stdout output, while proof work should target the real backend and later bridge
 to the existing mathlib `Complex` semantics.
+
+### 2026-05-02: Pass 2 Generic Evaluator Skeleton
+
+Added `LeanQIR.Evaluator` with:
+
+- `Evaluator.GState α`, a dense array statevector over generic complex
+  amplitudes;
+- executable bit helpers `getBitNat` and `setBitNat`, using result/qubit slot 0
+  as the least-significant bit;
+- generic application for Base non-rotational gates `H`, `X`, `Y`, `Z`, `S`,
+  `T`, `CNOT`, and `CZ`;
+- explicit rejection of `gate1r` rotation instructions until executable angle
+  representation is designed;
+- final probability accumulation over the measurement block into a dense array
+  indexed by result bitstring bucket.
+
+This pass keeps the evaluator independent of stdout formatting and QIR output
+records. The next wrapper pass should expose `evalBaseProbabilitiesReal` and
+`evalBaseProbabilitiesFloat` for `BaseProgram n m`.

@@ -8,7 +8,7 @@ scope = "leanprover-community"
 
 [[lean_lib]]
 name = "LeanQIR"
-globs = ["LeanQIR", "LeanQIR.Syntax", "LeanQIR.State", "LeanQIR.Semantics", "LeanQIR.QIR.+"]
+globs = ["LeanQIR", "LeanQIR.Syntax", "LeanQIR.Numeric", "LeanQIR.Evaluator", "LeanQIR.State", "LeanQIR.Semantics", "LeanQIR.QIR.+"]
 
 [[lean_lib]]
 name = "Examples"
